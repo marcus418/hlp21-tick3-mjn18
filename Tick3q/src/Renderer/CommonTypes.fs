@@ -50,7 +50,7 @@ The real Issie types have been simplified here.
         | BusSelection of OutputWidth: int * OutputLSBit: int
         | Constant of Width: int * ConstValue: int
         | Not | And | Or | Xor | Nand | Nor | Xnor |Decode4
-        | Mux2 | Demux2
+        | Mux2 | Demux2 | BusDecoder of WAN: (int*int*int)
         | NbitsAdder of BusWidth: int
         | Custom of CustomComponentType // schematic sheet used as component
         | MergeWires | SplitWire of BusWidth: int // int is bus width
@@ -68,6 +68,7 @@ The real Issie types have been simplified here.
         Y : int // top of component rectangle Y position on canvas
         H : int // Y value (height) of bounding box
         W : int // X value (width) of rectangle bounding box
+        
     }
 
     

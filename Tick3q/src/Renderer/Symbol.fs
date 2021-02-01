@@ -28,8 +28,15 @@ let posOf x y = {X=x;Y=y} // helper
 
 /// write this for Tick3 using your modified ComponentType
 /// you may add to type definition in CommonTypes
-let makeBusDecoderComponent (pos:XYPos) (w: int) (a: int) (n: int) = failwithf "Not implemented"
+let makeBusDecoderComponent (pos:XYPos) (w: int) (a: int) (n: int) = 
+    {
+        Type = BusDecoder (w,a,n)
+        X = int pos.X
+        Y = int pos.Y
+        W = 80
+        H = n * 15 + 35
 
+    }
 /// demo function - not needed for Tick3 answer
 let makeDummyComponent (pos: XYPos): Component =
     { 
@@ -55,8 +62,105 @@ let update (msg : Msg) (model : Model): Model*Cmd<'a>  =
 
 /// Tick3 answer
 let busDecoderView (comp: Component) = 
-    failwithf "Not implemented"
+    match comp.Type with
+    |BusDecoder (element1,element2,element3) -> //failwithf "Test"
+        let fX = float comp.X
+        let fY = float comp.Y
+        let first (BusDecoder (w,_,_)) = w
+        let second (BusDecoder (_,a,_)) = a
+        let third (BusDecoder (_,_,n)) = n
+        
+        let w = first comp.Type
+        let a = second comp.Type
+        let n = third comp.Type
 
+        let fH = float comp.H 
+        let fW = float comp.W 
+
+
+        let scaleFactor=1.0 // to demonstrate svg scaling
+        let rotation=0 // to demonstrate svg rotation (in degrees)
+        let nList = [0..n-1]
+        let dynamicBusDecoderContents = List.map (fun x -> 
+            text [ // a demo text svg element
+                X 70; 
+                Y (30+15*x); 
+                Style [
+                    TextAnchor "left" // left/right/middle: horizontal algnment vs (X,Y)
+                    DominantBaseline "hanging" // auto/middle/hanging: vertical alignment vs (X,Y)
+                    FontSize "10px"
+                    FontWeight "Bold"
+                    Fill "Blue" // demo font color
+                ]
+            ] [str <| sprintf "%i" (x+a)]) nList
+        
+        let staticBusDecoderContents = 
+                [
+                    polygon [ // a demo svg polygon triangle
+                        SVGAttr.Points (sprintf "0 0, %f 0, %f %f , 0 %f" fW fW fH fH) 
+                        SVGAttr.StrokeWidth "5px"
+                        SVGAttr.Stroke "Black"
+                        SVGAttr.FillOpacity 0.1
+                        SVGAttr.Fill "Blue"] []
+                    // line [X1 0.; Y1 0.; X2 0.; Y2 (100.) ; Style [Stroke "Black"]] [
+                    //  // child elements of line do not display since children of svg are dom elements
+                    //  // and svg will only display on svg canvas, not in dom.
+                    //  // hence this is not used
+                    // ]
+                    text [ // a demo text svg element
+                        X 40.; 
+                        Y 6.; 
+                        Style [
+                            TextAnchor "middle" // left/right/middle: horizontal algnment vs (X,Y)
+                            DominantBaseline "hanging" // auto/middle/hanging: vertical alignment vs (X,Y)
+                            FontSize "12px"
+                            FontWeight "Bold"
+                            Fill "Blue" // demo font color
+                        ]
+                    ] [str <| sprintf "Bus"]
+                    text [ // a demo text svg element
+                        X 40.; 
+                        Y 16.; 
+                        Style [
+                            TextAnchor "middle" // left/right/middle: horizontal algnment vs (X,Y)
+                            DominantBaseline "hanging" // auto/middle/hanging: vertical alignment vs (X,Y)
+                            FontSize "12px"
+                            FontWeight "Bold"
+                            Fill "Blue" // demo font color
+                        ]
+                    ] [str <| sprintf "Decode"] 
+                    // child of text element is text to display
+                    text [ // a demo text svg element
+                        X 5.; 
+                        Y ((fH-20.)/2.); 
+                        Style [
+                            TextAnchor "left" // left/right/middle: horizontal algnment vs (X,Y)
+                            DominantBaseline "hanging" // auto/middle/hanging: vertical alignment vs (X,Y)
+                            FontSize "10px"
+                            FontWeight "Bold"
+                            Fill "Blue" // demo font color
+                        ]
+                    ] [str <| sprintf "IN [0..%i]" w] 
+                ]
+        
+        let overallBusDecoderContents = List.append staticBusDecoderContents dynamicBusDecoderContents
+
+        g   [ Style [ 
+                // the transform here does rotation, scaling, and translation
+                // the rotation and scaling happens with TransformOrigin as fixed point first
+                TransformOrigin "0px 50px" // so that rotation is around centre of line
+                Transform (sprintf "translate(%fpx,%fpx) rotate(%ddeg) scale(%f) " fX fY rotation scaleFactor )
+                ]
+            
+            ]  // g optional attributes in first list
+            // use g svg element (SVG equivalent of div) to group any number of ReactElements into one.
+            // use transform with scale and/or translate and/or rotate to transform group
+
+            
+            overallBusDecoderContents
+            
+    |_-> failwithf "Invalid Component"
+    
 /// demo function can be deleted
 let busDecoderViewDummy (comp: Component) = 
     let fX = float comp.X
@@ -84,11 +188,12 @@ let busDecoderViewDummy (comp: Component) =
         // use transform with scale and/or translate and/or rotate to transform group
         [
             polygon [ // a demo svg polygon triangle
-                SVGAttr.Points "10,10 900,900 10,900"
-                SVGAttr.StrokeWidth "5px"
+                SVGAttr.Points "10 0,10 20, 20 20, 20 0"
+                SVGAttr.StrokeWidth "2px"
                 SVGAttr.Stroke "Black"
                 SVGAttr.FillOpacity 0.1
                 SVGAttr.Fill "Blue"] []
+            
             line [X1 0.; Y1 0.; X2 0.; Y2 (100.) ; Style [Stroke "Black"]] [
              // child elements of line do not display since children of svg are dom elements
              // and svg will only display on svg canvas, not in dom.
@@ -112,10 +217,12 @@ let busDecoderViewDummy (comp: Component) =
 /// View function - in this case view is independent of model
 let view (model : Model) (dispatch : Msg -> unit) =    
     [   // change for Tick3 answer
-        makeDummyComponent {X=100.; Y=20.} // for Tick 3 two components
-        makeDummyComponent {X=200.; Y=20.} 
+        makeBusDecoderComponent {X=100.; Y=20.} 3 0 8 // for Tick 3 two components
+        makeBusDecoderComponent {X=200.; Y=20.} 4 3 5
+        // makeDummyComponent {X=100.; Y=20.} // for Tick 3 two components
+        // makeDummyComponent {X=200.; Y=20.} 
     ] 
-    |> List.map busDecoderViewDummy // change for Tick3 answer
+    |> List.map busDecoderView // change for Tick3 answer
     |> (fun svgEls -> 
         svg [
             Style [
@@ -133,7 +240,19 @@ type ValidateError =
 
 /// Tick3 answer
 let busDecoderValidate (comp:Component) : Result<Component, ValidateError*string> =
-    failwithf "Not implemented"
+    match comp.Type with
+    |BusDecoder(w,a,n) ->
+        match w with
+        |x when x > 0 ->
+            match a with
+            |x when x>=0 && a<w ->
+                    match n with 
+                    |x when x>0 && a+x <=w -> Ok comp
+                    |_ -> Error (NIsInvalid, "Component has invalid N")
+            |_-> Error (AIsInvalid, "Compoonent has invalid A")
+        |_-> Error (WIsInvalid, "Component has invalid W")
+    |_ -> failwithf "Invalid Component"
+    // failwithf "Not implemented"
     
 
 
