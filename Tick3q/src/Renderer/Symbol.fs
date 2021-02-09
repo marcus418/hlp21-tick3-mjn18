@@ -63,17 +63,9 @@ let update (msg : Msg) (model : Model): Model*Cmd<'a>  =
 /// Tick3 answer
 let busDecoderView (comp: Component) = 
     match comp.Type with
-    |BusDecoder (element1,element2,element3) -> //failwithf "Test"
+    |BusDecoder (w,a,n) -> //failwithf "Test"
         let fX = float comp.X
         let fY = float comp.Y
-        let first (BusDecoder (w,_,_)) = w
-        let second (BusDecoder (_,a,_)) = a
-        let third (BusDecoder (_,_,n)) = n
-        
-        let w = first comp.Type
-        let a = second comp.Type
-        let n = third comp.Type
-
         let fH = float comp.H 
         let fW = float comp.W 
 
@@ -140,7 +132,7 @@ let busDecoderView (comp: Component) =
                             FontWeight "Bold"
                             Fill "Blue" // demo font color
                         ]
-                    ] [str <| sprintf "IN [0..%i]" w] 
+                    ] [str <| sprintf "IN [0..%i]" (w-1)] 
                 ]
         
         let overallBusDecoderContents = List.append staticBusDecoderContents dynamicBusDecoderContents
@@ -198,7 +190,7 @@ let busDecoderViewDummy (comp: Component) =
              // child elements of line do not display since children of svg are dom elements
              // and svg will only display on svg canvas, not in dom.
              // hence this is not used
-            ]
+            ] 
             text [ // a demo text svg element
                 X 0.; 
                 Y 100.; 
@@ -245,9 +237,9 @@ let busDecoderValidate (comp:Component) : Result<Component, ValidateError*string
         match w with
         |x when x > 0 ->
             match a with
-            |x when x>=0 && a<w ->
+            |x when x>=0 && ((2.0**(float w))-1.0) >= (float(x)) ->
                     match n with 
-                    |x when x>0 && a+x <=w -> Ok comp
+                    |x when x>0 && float(x) <= ((2.0**(float w))-(float a)) -> Ok comp
                     |_ -> Error (NIsInvalid, "Component has invalid N")
             |_-> Error (AIsInvalid, "Compoonent has invalid A")
         |_-> Error (WIsInvalid, "Component has invalid W")
